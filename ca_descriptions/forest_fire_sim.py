@@ -15,6 +15,9 @@ sys.path.append(main_dir_loc + 'capyle/guicomponents')
 from capyle.ca import Grid2D, Neighbourhood, randomise2d
 import capyle.utils as utils
 import numpy as np
+import random
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 def setup(args):
@@ -59,14 +62,13 @@ def setup(args):
     
     #powerplant
     grid[0,0] = 5
-    grid[1,0] = 5
-    grid[0,1] = 5
-    grid[1,1] = 5
+    # grid[1,0] = 5
+    # grid[0,1] = 5
+    # grid[1,1] = 5
 
     #incinerator
     #grid[0,199] = 5
-
-
+    
     config.initial_grid = grid
 
     config.wrap = False
@@ -100,6 +102,52 @@ def transition_function(grid, neighbourstates, neighbourcounts):
     canyon_states = (grid == 1)
     forest_states = (grid == 2)
 
+    #states with eight or more neighbors burning
+    eight_burning = (neighbourcounts[5] == 8)
+    #states with seven or more neighbors burning
+    seven_burning = (neighbourcounts[5] == 7)
+    #states with six or more neighbors burning
+    six_burning = (neighbourcounts[5] == 6)
+    #states with three or more neighbors burning
+    five_burning = (neighbourcounts[5] == 5)
+    #states with four or more neighbors burning
+    four_burning = (neighbourcounts[5] == 4)
+    #states with three or more neighbors burning
+    three_burning = (neighbourcounts[5] == 3)
+    #states with two or more neighbors burning
+    two_burning = (neighbourcounts[5] == 2)
+    #states with one or more neighbors burning
+    one_burning =(neighbourcounts[5] == 1)
+    #states with the neighbor to its north burning
+    northern_burning = (N == 5)
+
+    fourm_burning = (neighbourcounts[5] >= 4)
+
+    onem_burning = (neighbourcounts[5] >= 1)
+
+
+    start_burning = forest_states & eight_burning
+
+    start_burning = start_burning | (check_burn(forest_states, seven_burning, 0.5))
+    start_burning = start_burning | (check_burn(forest_states, six_burning, 0.45))
+    start_burning = start_burning | (check_burn(forest_states, five_burning, 0.4))
+    start_burning = start_burning | (check_burn(forest_states, four_burning, 0.35))
+    start_burning = start_burning | (check_burn(forest_states, three_burning, 0.3))
+    start_burning = start_burning | (check_burn(forest_states, two_burning, 0.25))
+    start_burning = start_burning | (check_burn(forest_states, one_burning, 0.2))
+
+    start_burning = start_burning | (check_burn(chapparal_states, fourm_burning, 0.5))
+    start_burning = start_burning | (check_burn(chapparal_states, three_burning, 0.45))
+    start_burning = start_burning | (check_burn(chapparal_states, two_burning, 0.4))
+    start_burning = start_burning | (check_burn(chapparal_states, one_burning, 0.35))
+
+    start_burning = start_burning | (check_burn(canyon_states, onem_burning, 1))
+
+        
+
+    """
+    DETERMINISTIC MODEL
+
     #states with three or more neighbors burning
     three_burning = (neighbourcounts[5] >= 3)
     #states with two or more neighbors burning
@@ -109,20 +157,32 @@ def transition_function(grid, neighbourstates, neighbourcounts):
     #states with the neighbor to its north burning
     northern_burning = (N == 5)
 
-    """
+    
     wind version 1
         canyon burns as long as there is one neighbor(does not have to be from the north)
         chapparal needs two neighbors burning OR just one neighbor from the north
         forest needs three neighbors OR one neighbor from the top and at least one other neighbor burning
-    """
+    
     #start_burning = (canyon_states & one_burning) | ((chapparal_states & two_burning) | (chapparal_states & northern_burning)) | ((forest_states & three_burning) | (forest_states & (northern_burning & two_burning)))
     
     #no wind
     start_burning = (canyon_states & one_burning) | ((chapparal_states & two_burning)) | ((forest_states & three_burning))
-    
+    """
     grid[start_burning] = 5
     return grid
 
+def check_burn(land_states, burning_neighbours, probability):
+    check_burnable = (land_states & burning_neighbours)
+    check_burnable = np.reshape(check_burnable, 40000)
+
+    for i in range(40000):
+        if check_burnable[i]:
+            x = random.random()
+            if x > probability:
+                check_burnable[i] = False
+
+    final_burning = np.reshape(check_burnable, (200,200))
+    return final_burning
 
 def main():
     """ Main function that sets up, runs and saves CA"""
