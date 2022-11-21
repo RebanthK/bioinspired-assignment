@@ -69,6 +69,8 @@ def setup(args):
     #incinerator
     #grid[0,199] = 5
     
+
+
     config.initial_grid = grid
 
     config.wrap = False
@@ -84,7 +86,7 @@ def setup(args):
     return config
 
 
-def transition_function(grid, neighbourstates, neighbourcounts):
+def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, firebrandgrid):
     """Function to apply the transition rules
     and return the new grid"""
     # 0:chapparal
@@ -101,6 +103,7 @@ def transition_function(grid, neighbourstates, neighbourcounts):
     chapparal_states = (grid == 0)
     canyon_states = (grid == 1)
     forest_states = (grid == 2)
+    burning_states = (grid == 5)
 
     #states with eight or more neighbors burning
     eight_burning = (neighbourcounts[5] == 8)
@@ -125,23 +128,28 @@ def transition_function(grid, neighbourstates, neighbourcounts):
 
     onem_burning = (neighbourcounts[5] >= 1)
 
+    firebrandgrid = firebrand(grid, neighbourstates, firebrandgrid)
 
-    start_burning = forest_states & eight_burning
+    start_burning = check_burn(forest_states, eight_burning, 0.6, firebrandgrid)
 
-    start_burning = start_burning | (check_burn(forest_states, seven_burning, 0.5))
-    start_burning = start_burning | (check_burn(forest_states, six_burning, 0.45))
-    start_burning = start_burning | (check_burn(forest_states, five_burning, 0.4))
-    start_burning = start_burning | (check_burn(forest_states, four_burning, 0.35))
-    start_burning = start_burning | (check_burn(forest_states, three_burning, 0.3))
-    start_burning = start_burning | (check_burn(forest_states, two_burning, 0.25))
-    start_burning = start_burning | (check_burn(forest_states, one_burning, 0.2))
+    start_burning = start_burning | (check_burn(forest_states, seven_burning, 0.5, firebrandgrid))
+    start_burning = start_burning | (check_burn(forest_states, six_burning, 0.45, firebrandgrid))
+    start_burning = start_burning | (check_burn(forest_states, five_burning, 0.4, firebrandgrid))
+    start_burning = start_burning | (check_burn(forest_states, four_burning, 0.35, firebrandgrid))
+    start_burning = start_burning | (check_burn(forest_states, three_burning, 0.3, firebrandgrid))
+    start_burning = start_burning | (check_burn(forest_states, two_burning, 0.25, firebrandgrid))
+    start_burning = start_burning | (check_burn(forest_states, one_burning, 0.2, firebrandgrid))
 
-    start_burning = start_burning | (check_burn(chapparal_states, fourm_burning, 0.5))
-    start_burning = start_burning | (check_burn(chapparal_states, three_burning, 0.45))
-    start_burning = start_burning | (check_burn(chapparal_states, two_burning, 0.4))
-    start_burning = start_burning | (check_burn(chapparal_states, one_burning, 0.35))
+    start_burning = start_burning | (check_burn(chapparal_states, fourm_burning, 0.5, firebrandgrid))
+    start_burning = start_burning | (check_burn(chapparal_states, three_burning, 0.45, firebrandgrid))
+    start_burning = start_burning | (check_burn(chapparal_states, two_burning, 0.4, firebrandgrid))
+    start_burning = start_burning | (check_burn(chapparal_states, one_burning, 0.2, firebrandgrid))
 
-    start_burning = start_burning | (check_burn(canyon_states, onem_burning, 1))
+    start_burning = start_burning | (check_burn(canyon_states, onem_burning, 1, firebrandgrid))
+
+    decaygrid[burning_states] -= 1
+    decayed_to_zero = (decaygrid == 0)
+    grid[decayed_to_zero] = 6
 
         
 
@@ -171,26 +179,54 @@ def transition_function(grid, neighbourstates, neighbourcounts):
     grid[start_burning] = 5
     return grid
 
-def check_burn(land_states, burning_neighbours, probability):
+def check_burn(land_states, burning_neighbours, probability, firebrandgrid):
     check_burnable = (land_states & burning_neighbours)
     check_burnable = np.reshape(check_burnable, 40000)
+    firebrandgrid_reshaped = np.reshape(firebrandgrid, 40000)
 
     for i in range(40000):
         if check_burnable[i]:
             x = random.random()
-            if x > probability:
+            if x > (probability + firebrandgrid_reshaped[i]):
                 check_burnable[i] = False
 
     final_burning = np.reshape(check_burnable, (200,200))
     return final_burning
+
+def firebrand(grid, neighbourstates, firebrandgrid):
+    burning_states = (grid == 5)
+    NW, N, NE, W, E, SW, S, SE = neighbourstates
+    north_burning = (N==5)
+    for y in range(200):
+        for x in range(200):
+            if north_burning[x, y]:
+                firebrandgrid[x,y] = 0.3
+            elif (y > 0) & (firebrandgrid[x,y-1] != 0):
+                firebrandgrid[x,y] = firebrandgrid[x,y-1] - 0.1
+            else:
+                firebrandgrid[x,y] = 0                    
+    return firebrandgrid
+    
 
 def main():
     """ Main function that sets up, runs and saves CA"""
     # Get the config object from set up
     config = setup(sys.argv[1:])
 
+    decaygrid = np.zeros(config.grid_dims)
+    decaygrid.fill(-1)
+    temp_grid = (config.initial_grid == 0)
+    decaygrid[temp_grid] = 7
+    temp_grid = (config.initial_grid == 1)
+    decaygrid[temp_grid] = 1
+    temp_grid = (config.initial_grid == 2)
+    decaygrid[temp_grid] = 60
+
+    firebrandgrid = np.zeros(config.grid_dims)
+    firebrandgrid.fill(0)
+
     # Create grid object using parameters from config + transition function
-    grid = Grid2D(config, transition_function)
+    grid = Grid2D(config, (transition_function, decaygrid, firebrandgrid))
 
     # Run the CA, save grid state every generation to timeline
     timeline = grid.run()
