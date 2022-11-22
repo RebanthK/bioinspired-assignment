@@ -38,33 +38,30 @@ def setup(args):
     grid = np.zeros((200,200))
     
     #setting forest
-    for x in range(60,100):
-        for y in range(19,70):
-            grid[y,x] = 2
-    for x in range(0,100):
-        for y in range(80,140):
-            grid[y,x] = 2
+    for y in range(60,100):
+        for x in range(19,70):
+            grid[x,y] = 2
+    for y in range(0,100):
+        for x in range(80,140):
+            grid[x,y] = 2
 
     #setting canyon
-    for x in range(120,130):
-        for y in range(20,160):
-            grid[y,x] = 1
+    for y in range(120,130):
+        for x in range(20,160):
+            grid[x,y] = 1
 
     #setting lake
-    for x in range(20,100):
-        for y in range(70,80):
-            grid[y,x] = 3
+    for y in range(20,100):
+        for x in range(70,80):
+            grid[x,y] = 3
 
     #setting town
-    for x in range(75,85):
-        for y in range(175,185):
-            grid[y,x] = 4
+    for y in range(75,85):
+        for x in range(175,185):
+            grid[x,y] = 4
     
     #powerplant
     grid[0,0] = 5
-    # grid[1,0] = 5
-    # grid[0,1] = 5
-    # grid[1,1] = 5
 
     #incinerator
     #grid[0,199] = 5
@@ -97,13 +94,40 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
     # 5:burning
     # 6:burnt
     # YOUR CODE HERE
-
     NW, N, NE, W, E, SW, S, SE = neighbourstates
 
     chapparal_states = (grid == 0)
     canyon_states = (grid == 1)
     forest_states = (grid == 2)
     burning_states = (grid == 5)
+
+    burning_neighbor_counts = neighbourcounts[5]
+
+
+    #states with the neighbor to its north burning
+    northern_burning = (N == 5)
+
+    firebrandgrid = firebrand(neighbourstates, firebrandgrid)
+
+    p_forest = 0.2
+    p_chapparal = 0.3
+    p_canyon = 0.4
+    
+
+    start_burning = check_burn2(forest_states, burning_neighbor_counts, p_forest, firebrandgrid, northern_burning, burning_states)
+    start_burning = start_burning | check_burn2(chapparal_states, burning_neighbor_counts, p_chapparal, firebrandgrid, northern_burning, burning_states)
+    start_burning = start_burning | check_burn2(canyon_states, burning_neighbor_counts, p_canyon, firebrandgrid, northern_burning, burning_states)
+
+    decaygrid[burning_states] -= 1
+    decayed_to_zero = (decaygrid == 0)
+    grid[start_burning] = 5
+    grid[decayed_to_zero] = 6
+
+        
+
+    """
+
+    PROBABALISTIC MODEL 1
 
     #states with eight or more neighbors burning
     eight_burning = (neighbourcounts[5] == 8)
@@ -121,39 +145,31 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
     two_burning = (neighbourcounts[5] == 2)
     #states with one or more neighbors burning
     one_burning =(neighbourcounts[5] == 1)
-    #states with the neighbor to its north burning
-    northern_burning = (N == 5)
+    
+    
 
     fourm_burning = (neighbourcounts[5] >= 4)
 
     onem_burning = (neighbourcounts[5] >= 1)
 
-    firebrandgrid = firebrand(grid, neighbourstates, firebrandgrid)
+    # start_burning = check_burn(forest_states, eight_burning, p_forest, firebrandgrid, 8)
+    # start_burning = start_burning | (check_burn(forest_states, seven_burning, p_forest, firebrandgrid, 7))
+    # start_burning = start_burning | (check_burn(forest_states, six_burning, p_forest, firebrandgrid, 6))
+    # start_burning = start_burning | (check_burn(forest_states, five_burning, p_forest, firebrandgrid, 5))
+    # start_burning = start_burning | (check_burn(forest_states, four_burning, p_forest, firebrandgrid, 4))
+    # start_burning = start_burning | (check_burn(forest_states, three_burning, p_forest, firebrandgrid, 3))
+    # start_burning = start_burning | (check_burn(forest_states, two_burning, p_forest, firebrandgrid, 2))
+    # start_burning = start_burning | (check_burn(forest_states, one_burning, p_forest, firebrandgrid, 1))
 
-    start_burning = check_burn(forest_states, eight_burning, 0.6, firebrandgrid)
+    # start_burning = start_burning | (check_burn(chapparal_states, fourm_burning, p_chapparal, firebrandgrid))
+    # start_burning = start_burning | (check_burn(chapparal_states, three_burning, p_chapparal, firebrandgrid))
+    # start_burning = start_burning | (check_burn(chapparal_states, two_burning, p_chapparal, firebrandgrid))
+    # start_burning = start_burning | (check_burn(chapparal_states, one_burning, p_chapparal, firebrandgrid))
 
-    start_burning = start_burning | (check_burn(forest_states, seven_burning, 0.5, firebrandgrid))
-    start_burning = start_burning | (check_burn(forest_states, six_burning, 0.45, firebrandgrid))
-    start_burning = start_burning | (check_burn(forest_states, five_burning, 0.4, firebrandgrid))
-    start_burning = start_burning | (check_burn(forest_states, four_burning, 0.35, firebrandgrid))
-    start_burning = start_burning | (check_burn(forest_states, three_burning, 0.3, firebrandgrid))
-    start_burning = start_burning | (check_burn(forest_states, two_burning, 0.25, firebrandgrid))
-    start_burning = start_burning | (check_burn(forest_states, one_burning, 0.2, firebrandgrid))
+    # start_burning = start_burning | (check_burn(canyon_states, onem_burning, 1, firebrandgrid))
 
-    start_burning = start_burning | (check_burn(chapparal_states, fourm_burning, 0.5, firebrandgrid))
-    start_burning = start_burning | (check_burn(chapparal_states, three_burning, 0.45, firebrandgrid))
-    start_burning = start_burning | (check_burn(chapparal_states, two_burning, 0.4, firebrandgrid))
-    start_burning = start_burning | (check_burn(chapparal_states, one_burning, 0.2, firebrandgrid))
 
-    start_burning = start_burning | (check_burn(canyon_states, onem_burning, 1, firebrandgrid))
 
-    decaygrid[burning_states] -= 1
-    decayed_to_zero = (decaygrid == 0)
-    grid[decayed_to_zero] = 6
-
-        
-
-    """
     DETERMINISTIC MODEL
 
     #states with three or more neighbors burning
@@ -176,11 +192,11 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
     #no wind
     start_burning = (canyon_states & one_burning) | ((chapparal_states & two_burning)) | ((forest_states & three_burning))
     """
-    grid[start_burning] = 5
     return grid
 
-def check_burn(land_states, burning_neighbours, probability, firebrandgrid):
-    check_burnable = (land_states & burning_neighbours)
+def check_burn(land_states, burning_neighbors, probability, firebrandgrid, burning_neighbor_count):
+    check_burnable = (land_states & burning_neighbors)
+    p = 1 - ((1 - p)**burning_neighbor_count)
     check_burnable = np.reshape(check_burnable, 40000)
     firebrandgrid_reshaped = np.reshape(firebrandgrid, 40000)
 
@@ -193,16 +209,31 @@ def check_burn(land_states, burning_neighbours, probability, firebrandgrid):
     final_burning = np.reshape(check_burnable, (200,200))
     return final_burning
 
-def firebrand(grid, neighbourstates, firebrandgrid):
-    burning_states = (grid == 5)
+def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid, north_burning, burning_states):
+    for y in range(200):
+        for x in range(200):
+            if land_states[x, y]:
+                z = random.random()
+                num_neighbors = burning_neighbor_counts[x, y]
+                firebrand_p = firebrandgrid[x,y]
+                if north_burning[x, y]:
+                    p = 1 - ((1 - probability)**(num_neighbors+1)) + firebrand_p
+                else:
+                    p = 1 - ((1 - probability)**(num_neighbors)) + firebrand_p
+                if z < p:
+                    burning_states[x,y] = True
+    return burning_states
+
+
+def firebrand(neighbourstates, firebrandgrid):
     NW, N, NE, W, E, SW, S, SE = neighbourstates
     north_burning = (N==5)
     for y in range(200):
         for x in range(200):
             if north_burning[x, y]:
-                firebrandgrid[x,y] = 0.3
+                firebrandgrid[x,y] = 0.05
             elif (y > 0) & (firebrandgrid[x,y-1] != 0):
-                firebrandgrid[x,y] = firebrandgrid[x,y-1] - 0.1
+                firebrandgrid[x,y] = firebrandgrid[x,y-1] - 0.01
             else:
                 firebrandgrid[x,y] = 0                    
     return firebrandgrid
