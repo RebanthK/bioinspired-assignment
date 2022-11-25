@@ -102,9 +102,9 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
     # 5:burning
     # 6:burnt
     # YOUR CODE HERE
-    #NW, N, NE, W, E, SW, S, SE = neighbourstates
+    NW, N, NE, W, E, SW, S, SE = neighbourstates
 
-    N,W,E,S = neighbourstates
+    #N,W,E,S = neighbourstates
 
     chapparal_states = (grid == 0)
     canyon_states = (grid == 1)
@@ -115,7 +115,7 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
 
 
     #states with the neighbor to its north burning
-    northern_burning = (N == 5)
+    northern_burning = (NE == 5)
 
     firebrandgrid = firebrand(neighbourstates, firebrandgrid)
 
@@ -236,9 +236,9 @@ def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid
 
 
 def firebrand(neighbourstates, firebrandgrid):
-    #NW, N, NE, W, E, SW, S, SE = neighbourstates
-    N,W,E,S = neighbourstates
-    north_burning = (N==5)
+    NW, N, NE, W, E, SW, S, SE = neighbourstates
+    #N,W,E,S = neighbourstates
+    north_burning = (NE==5)
     for y in range(200):
         for x in range(200):
             if north_burning[x, y]:
