@@ -19,6 +19,14 @@ import random
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+P_FOREST = 0.005
+P_CHAPPARAL = 0.05
+P_CANYON = 0.8
+FIREBRAND = 0.05
+FIREBRAND_DECAY = 0.01
+DECAY_CANYON = 2
+DECAY_FOREST = DECAY_CANYON * 120
+DECAY_CHAPPARAL = DECAY_CANYON * 14
 
 def setup(args):
     """Set up the config object used to interact with the GUI"""
@@ -64,7 +72,7 @@ def setup(args):
     grid[0,0] = 5
 
     #incinerator
-    #grid[0,199] = 5
+    grid[0,199] = 5
     
 
 
@@ -94,7 +102,9 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
     # 5:burning
     # 6:burnt
     # YOUR CODE HERE
-    NW, N, NE, W, E, SW, S, SE = neighbourstates
+    #NW, N, NE, W, E, SW, S, SE = neighbourstates
+
+    N,W,E,S = neighbourstates
 
     chapparal_states = (grid == 0)
     canyon_states = (grid == 1)
@@ -109,9 +119,9 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
 
     firebrandgrid = firebrand(neighbourstates, firebrandgrid)
 
-    p_forest = 0.2
-    p_chapparal = 0.3
-    p_canyon = 0.4
+    p_forest = P_FOREST
+    p_chapparal = P_CHAPPARAL
+    p_canyon = P_CANYON
     
 
     start_burning = check_burn2(forest_states, burning_neighbor_counts, p_forest, firebrandgrid, northern_burning, burning_states)
@@ -226,14 +236,15 @@ def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid
 
 
 def firebrand(neighbourstates, firebrandgrid):
-    NW, N, NE, W, E, SW, S, SE = neighbourstates
+    #NW, N, NE, W, E, SW, S, SE = neighbourstates
+    N,W,E,S = neighbourstates
     north_burning = (N==5)
     for y in range(200):
         for x in range(200):
             if north_burning[x, y]:
-                firebrandgrid[x,y] = 0.05
+                firebrandgrid[x,y] = FIREBRAND
             elif (y > 0) & (firebrandgrid[x,y-1] != 0):
-                firebrandgrid[x,y] = firebrandgrid[x,y-1] - 0.01
+                firebrandgrid[x,y] = firebrandgrid[x,y-1] - FIREBRAND_DECAY
             else:
                 firebrandgrid[x,y] = 0                    
     return firebrandgrid
@@ -247,11 +258,11 @@ def main():
     decaygrid = np.zeros(config.grid_dims)
     decaygrid.fill(-1)
     temp_grid = (config.initial_grid == 0)
-    decaygrid[temp_grid] = 7
+    decaygrid[temp_grid] = DECAY_CHAPPARAL
     temp_grid = (config.initial_grid == 1)
-    decaygrid[temp_grid] = 1
+    decaygrid[temp_grid] = DECAY_CANYON
     temp_grid = (config.initial_grid == 2)
-    decaygrid[temp_grid] = 60
+    decaygrid[temp_grid] = DECAY_FOREST
 
     firebrandgrid = np.zeros(config.grid_dims)
     firebrandgrid.fill(0)
