@@ -24,9 +24,24 @@ P_CHAPPARAL = 0.05
 P_CANYON = 0.8
 FIREBRAND = 0.05
 FIREBRAND_DECAY = 0.01
-DECAY_CANYON = 2
+
+#1 gen 1 hour
+"""
+canyon 6 hrs 
+
+"""
+DECAY_CANYON = 6
+DECAY_FOREST = DECAY_CANYON * 80
+DECAY_CHAPPARAL = DECAY_CANYON * 10
+
+"""
+realistic scaling
+1 gen 12 hrs
+DECAY_CANYON = 1
 DECAY_FOREST = DECAY_CANYON * 120
 DECAY_CHAPPARAL = DECAY_CANYON * 14
+"""
+
 
 def setup(args):
     """Set up the config object used to interact with the GUI"""
