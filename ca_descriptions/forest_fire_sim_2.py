@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 P_CHAPARRAL = 0.093
 P_FOREST = 0.018
 P_CANYON = 1
-FIREBRAND = 0.05
+FIREBRAND = 0.2
 FIREBRAND_DECAY = FIREBRAND/3
 WIND_FACTOR = 1
 
@@ -81,6 +81,7 @@ def setup(args):
 
     #powerplant
     grid[0][0] = 5
+    grid[1][0] = 5
 
     #incinerator
     grid[0][99] = 5
@@ -123,6 +124,7 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
     burning_states = (grid == 5)
 
     burning_neighbor_counts = neighbourcounts[5]
+    #print(burning_neighbor_counts)
 
 
     #states with the neighbor to its north burning
@@ -240,8 +242,10 @@ def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid
                 firebrand_p = firebrandgrid[y][x]
                 if wind_burning[y][x]:
                     p = 1 - ((1 - probability)**(num_neighbors+WIND_FACTOR)) + firebrand_p
+
                 else:
                     p = 1 - ((1 - probability)**(num_neighbors)) + firebrand_p
+
                 if z < p:
                     burning_states[y][x] = True
     return burning_states
@@ -255,9 +259,11 @@ def firebrand(neighbourstates, firebrandgrid):
         for y in range(1, 100):
             if north_burning[y][x]:
                 firebrandgrid[y][x] = FIREBRAND
-            elif (firebrandgrid[y-1][x] != 0):
+            elif (firebrandgrid[y-1][x] > 0):
                 firebrandgrid[y][x] = firebrandgrid[y-1][x] - FIREBRAND_DECAY
             else:
+                firebrandgrid[y][x] = 0
+            if firebrandgrid[y][x] < 0:
                 firebrandgrid[y][x] = 0
     return firebrandgrid
     

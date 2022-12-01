@@ -22,7 +22,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 P_CHAPPARAL = 0.093
 P_FOREST = 0.018
 P_CANYON = 1
-FIREBRAND = 0.05
+FIREBRAND = 0.02
 FIREBRAND_DECAY = FIREBRAND/3
 WIND_FACTOR = 1
 
