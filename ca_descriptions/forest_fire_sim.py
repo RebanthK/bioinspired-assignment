@@ -23,24 +23,18 @@ P_CHAPPARAL = 0.093
 P_FOREST = 0.018
 P_CANYON = 1
 FIREBRAND = 0.05
-FIREBRAND_DECAY = FIREBRAND/5
+FIREBRAND_DECAY = FIREBRAND/3
 
-#1 gen 1 hour
+
 """
-canyon 6 hrs 
+canyon 6 hrs
+chapparal 6 days
+forest 25 days
 
 """
 DECAY_CANYON = 24
-DECAY_FOREST = DECAY_CANYON * 80
-DECAY_CHAPPARAL = DECAY_CANYON * 10
-
-"""
-realistic scaling
-1 gen 12 hrs
-DECAY_CANYON = 1
-DECAY_FOREST = DECAY_CANYON * 120
-DECAY_CHAPPARAL = DECAY_CANYON * 14
-"""
+DECAY_FOREST = DECAY_CANYON * 50
+DECAY_CHAPPARAL = DECAY_CANYON * 12
 
 
 def setup(args):
@@ -56,20 +50,11 @@ def setup(args):
     # ---- Override the defaults below (these may be changed at anytime) ----
 
     config.state_colors = [(0.4,1,0),(0.75,0.83,0),(0,0.54,0),(0,0.67,1),(0.9,0,1),(1,0,0),(0,0,0)]
-    #config.grid_dims = (200,200)
     config.grid_dims = (100,100)
 
-    # grid = np.zeros((200,200))
     grid = np.zeros((100,100))
     
     #setting forest
-    # for y in range(60,100):
-    #     for x in range(19,70):
-    #         grid[x,y] = 2
-    # for y in range(0,100):
-    #     for x in range(80,140):
-    #         grid[x,y] = 2
-
     for y in range(30,50):
         for x in range(9,35):
             grid[x,y] = 2
@@ -78,28 +63,16 @@ def setup(args):
             grid[x,y] = 2
 
     #setting canyon
-    # for y in range(120,130):
-    #     for x in range(20,160):
-    #         grid[x,y] = 1
-
     for y in range(60,65):
         for x in range(10,80):
             grid[x,y] = 1
 
     #setting lake
-    # for y in range(20,100):
-    #     for x in range(70,80):
-    #         grid[x,y] = 3
-
     for y in range(10,50):
         for x in range(35,40):
             grid[x,y] = 3
 
     #setting town
-    # for y in range(75,85):
-    #     for x in range(175,185):
-    #         grid[x,y] = 4
-    
     for y in range(37,42):
         for x in range(87,92):
             grid[x,y] = 4
@@ -108,7 +81,6 @@ def setup(args):
     grid[0,0] = 5
 
     #incinerator
-    #grid[0,199] = 5
     grid[0,99] = 5
     
 
@@ -152,7 +124,7 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
 
 
     #states with the neighbor to its north burning
-    northern_burning = (N == 5)
+    wind_direction_burning = (N == 5)
 
     firebrandgrid = firebrand(neighbourstates, firebrandgrid)
 
@@ -161,9 +133,9 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
     p_canyon = P_CANYON
     
 
-    start_burning = check_burn2(forest_states, burning_neighbor_counts, p_forest, firebrandgrid, northern_burning, burning_states)
-    start_burning = start_burning | check_burn2(chapparal_states, burning_neighbor_counts, p_chapparal, firebrandgrid, northern_burning, burning_states)
-    start_burning = start_burning | check_burn2(canyon_states, burning_neighbor_counts, p_canyon, firebrandgrid, northern_burning, burning_states)
+    start_burning = check_burn2(forest_states, burning_neighbor_counts, p_forest, firebrandgrid, wind_direction_burning, burning_states)
+    start_burning = start_burning | check_burn2(chapparal_states, burning_neighbor_counts, p_chapparal, firebrandgrid, wind_direction_burning, burning_states)
+    start_burning = start_burning | check_burn2(canyon_states, burning_neighbor_counts, p_canyon, firebrandgrid, wind_direction_burning, burning_states)
 
     decaygrid[burning_states] -= 1
     decayed_to_zero = (decaygrid == 0)
@@ -226,7 +198,7 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
     #states with one or more neighbors burning
     one_burning =(neighbourcounts[5] >= 1)
     #states with the neighbor to its north burning
-    northern_burning = (N == 5)
+    wind_direction_burning = (N == 5)
 
     
     wind version 1
@@ -234,7 +206,7 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
         chapparal needs two neighbors burning OR just one neighbor from the north
         forest needs three neighbors OR one neighbor from the top and at least one other neighbor burning
     
-    #start_burning = (canyon_states & one_burning) | ((chapparal_states & two_burning) | (chapparal_states & northern_burning)) | ((forest_states & three_burning) | (forest_states & (northern_burning & two_burning)))
+    #start_burning = (canyon_states & one_burning) | ((chapparal_states & two_burning) | (chapparal_states & wind_direction_burning)) | ((forest_states & three_burning) | (forest_states & (wind_direction_burning & two_burning)))
     
     #no wind
     start_burning = (canyon_states & one_burning) | ((chapparal_states & two_burning)) | ((forest_states & three_burning))
@@ -256,14 +228,14 @@ def check_burn(land_states, burning_neighbors, probability, firebrandgrid, burni
     final_burning = np.reshape(check_burnable, (100,100))
     return final_burning
 
-def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid, north_burning, burning_states):
+def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid, wind_burning, burning_states):
     for y in range(100):
         for x in range(100):
             if land_states[x, y]:
                 z = random.random()
                 num_neighbors = burning_neighbor_counts[x, y]
                 firebrand_p = firebrandgrid[x,y]
-                if north_burning[x, y]:
+                if wind_burning[x, y]:
                     p = 1 - ((1 - probability)**(num_neighbors+1)) + firebrand_p
                 else:
                     p = 1 - ((1 - probability)**(num_neighbors)) + firebrand_p
@@ -275,7 +247,7 @@ def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid
 def firebrand(neighbourstates, firebrandgrid):
     NW, N, NE, W, E, SW, S, SE = neighbourstates
     #N,W,E,S = neighbourstates
-    north_burning = (NE==5)
+    north_burning = (N==5)
     for y in range(100):
         for x in range(100):
             if north_burning[x, y]:
