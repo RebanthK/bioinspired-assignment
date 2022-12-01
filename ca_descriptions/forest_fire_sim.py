@@ -19,18 +19,18 @@ import random
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-P_FOREST = 0.005
-P_CHAPPARAL = 0.05
-P_CANYON = 0.8
+P_CHAPPARAL = 0.093
+P_FOREST = 0.018
+P_CANYON = 1
 FIREBRAND = 0.05
-FIREBRAND_DECAY = 0.01
+FIREBRAND_DECAY = FIREBRAND/5
 
 #1 gen 1 hour
 """
 canyon 6 hrs 
 
 """
-DECAY_CANYON = 6
+DECAY_CANYON = 24
 DECAY_FOREST = DECAY_CANYON * 80
 DECAY_CHAPPARAL = DECAY_CANYON * 10
 
@@ -56,38 +56,60 @@ def setup(args):
     # ---- Override the defaults below (these may be changed at anytime) ----
 
     config.state_colors = [(0.4,1,0),(0.75,0.83,0),(0,0.54,0),(0,0.67,1),(0.9,0,1),(1,0,0),(0,0,0)]
-    config.grid_dims = (200,200)
+    #config.grid_dims = (200,200)
+    config.grid_dims = (100,100)
 
-    grid = np.zeros((200,200))
+    # grid = np.zeros((200,200))
+    grid = np.zeros((100,100))
     
     #setting forest
-    for y in range(60,100):
-        for x in range(19,70):
+    # for y in range(60,100):
+    #     for x in range(19,70):
+    #         grid[x,y] = 2
+    # for y in range(0,100):
+    #     for x in range(80,140):
+    #         grid[x,y] = 2
+
+    for y in range(30,50):
+        for x in range(9,35):
             grid[x,y] = 2
-    for y in range(0,100):
-        for x in range(80,140):
+    for y in range(0,50):
+        for x in range(40,70):
             grid[x,y] = 2
 
     #setting canyon
-    for y in range(120,130):
-        for x in range(20,160):
+    # for y in range(120,130):
+    #     for x in range(20,160):
+    #         grid[x,y] = 1
+
+    for y in range(60,65):
+        for x in range(10,80):
             grid[x,y] = 1
 
     #setting lake
-    for y in range(20,100):
-        for x in range(70,80):
+    # for y in range(20,100):
+    #     for x in range(70,80):
+    #         grid[x,y] = 3
+
+    for y in range(10,50):
+        for x in range(35,40):
             grid[x,y] = 3
 
     #setting town
-    for y in range(75,85):
-        for x in range(175,185):
-            grid[x,y] = 4
+    # for y in range(75,85):
+    #     for x in range(175,185):
+    #         grid[x,y] = 4
     
+    for y in range(37,42):
+        for x in range(87,92):
+            grid[x,y] = 4
+
     #powerplant
     grid[0,0] = 5
 
     #incinerator
-    grid[0,199] = 5
+    #grid[0,199] = 5
+    grid[0,99] = 5
     
 
 
@@ -130,7 +152,7 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
 
 
     #states with the neighbor to its north burning
-    northern_burning = (NE == 5)
+    northern_burning = (N == 5)
 
     firebrandgrid = firebrand(neighbourstates, firebrandgrid)
 
@@ -222,21 +244,21 @@ def transition_function(grid, neighbourstates, neighbourcounts, decaygrid, fireb
 def check_burn(land_states, burning_neighbors, probability, firebrandgrid, burning_neighbor_count):
     check_burnable = (land_states & burning_neighbors)
     p = 1 - ((1 - p)**burning_neighbor_count)
-    check_burnable = np.reshape(check_burnable, 40000)
-    firebrandgrid_reshaped = np.reshape(firebrandgrid, 40000)
+    check_burnable = np.reshape(check_burnable, 10000)
+    firebrandgrid_reshaped = np.reshape(firebrandgrid, 10000)
 
-    for i in range(40000):
+    for i in range(10000):
         if check_burnable[i]:
             x = random.random()
             if x > (probability + firebrandgrid_reshaped[i]):
                 check_burnable[i] = False
 
-    final_burning = np.reshape(check_burnable, (200,200))
+    final_burning = np.reshape(check_burnable, (100,100))
     return final_burning
 
 def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid, north_burning, burning_states):
-    for y in range(200):
-        for x in range(200):
+    for y in range(100):
+        for x in range(100):
             if land_states[x, y]:
                 z = random.random()
                 num_neighbors = burning_neighbor_counts[x, y]
@@ -254,8 +276,8 @@ def firebrand(neighbourstates, firebrandgrid):
     NW, N, NE, W, E, SW, S, SE = neighbourstates
     #N,W,E,S = neighbourstates
     north_burning = (NE==5)
-    for y in range(200):
-        for x in range(200):
+    for y in range(100):
+        for x in range(100):
             if north_burning[x, y]:
                 firebrandgrid[x,y] = FIREBRAND
             elif (y > 0) & (firebrandgrid[x,y-1] != 0):
