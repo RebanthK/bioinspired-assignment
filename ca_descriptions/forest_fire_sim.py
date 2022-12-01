@@ -24,9 +24,11 @@ P_FOREST = 0.018
 P_CANYON = 1
 FIREBRAND = 0.05
 FIREBRAND_DECAY = FIREBRAND/3
+WIND_FACTOR = 1
 
 
 """
+1 gen 15 mins
 canyon 6 hrs
 chapparal 6 days
 forest 25 days
@@ -236,7 +238,7 @@ def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid
                 num_neighbors = burning_neighbor_counts[x, y]
                 firebrand_p = firebrandgrid[x,y]
                 if wind_burning[x, y]:
-                    p = 1 - ((1 - probability)**(num_neighbors+1)) + firebrand_p
+                    p = 1 - ((1 - probability)**(num_neighbors+WIND_FACTOR)) + firebrand_p
                 else:
                     p = 1 - ((1 - probability)**(num_neighbors)) + firebrand_p
                 if z < p:
@@ -252,8 +254,8 @@ def firebrand(neighbourstates, firebrandgrid):
         for x in range(100):
             if north_burning[x, y]:
                 firebrandgrid[x,y] = FIREBRAND
-            elif (y > 0) & (firebrandgrid[x,y-1] != 0):
-                firebrandgrid[x,y] = firebrandgrid[x,y-1] - FIREBRAND_DECAY
+            elif (y > 0) & (firebrandgrid[x-1,y] != 0):
+                firebrandgrid[x,y] = firebrandgrid[x-1,y] - FIREBRAND_DECAY
             else:
                 firebrandgrid[x,y] = 0                    
     return firebrandgrid
