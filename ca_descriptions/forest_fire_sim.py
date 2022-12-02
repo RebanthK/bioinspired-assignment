@@ -81,7 +81,6 @@ def setup(args):
 
     #powerplant
     grid[0][0] = 5
-    grid[1][0] = 5
 
     #incinerator
     grid[0][99] = 5
@@ -234,6 +233,32 @@ def check_burn(land_states, burning_neighbors, probability, firebrandgrid, burni
     return final_burning"""
 
 def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid, wind_burning, burning_states):
+    """
+    Probabilistic function to determine the burning states in each generation
+
+    Parameters
+    -----------
+    land_states: 100x100 Truth Value Array
+        Grid of just forest/canyon/chaparral
+    burning_neighbor_counts: 100x100 integer Array
+        Grid where each cell holds the number of adjacent cells that are burning
+    probability: float
+        probability that the cell would catch fire if only one neighbor was burning
+    firebrandgrid: 100x100 Float Array
+        Grid where each cell is the value of additional probability of burning due to firebrand
+    windburning: 100x100 Truth Value array
+        Grid where each cell is true if the adjacent neighbor from the direction of the prevailing wind is burning, else false
+    burning_states: 100x100 Truth Value array
+        Grid where each cell is true if the state is burning
+    -----------
+
+    Output
+    -------
+    burning_states: 100x100 Truth Value Array
+        Updated Grid with new burning states in that generation
+
+
+    """
     for x in range(100):
         for y in range(100):
             if land_states[y][x]:
@@ -252,6 +277,24 @@ def check_burn2(land_states, burning_neighbor_counts, probability, firebrandgrid
 
 
 def firebrand(neighbourstates, firebrandgrid):
+    """
+    Function to update the additional probabilities each cell has to start burning due to firebrand, updated in each generation
+    
+    Parameters
+    ----------
+
+    neighbourstates(generated in CAPyLE functionality)
+
+    firebrandgrid: 100x100 Float Array
+        Grid where each cell is the value of additional probability of burning due to firebrand
+
+    ----------
+
+    Outputs
+        firebrandgrid: 100x100 Float Array
+        Updated grid where each cell is the value of additional probability of burning due to firebrand
+
+    """
     NW, N, NE, W, E, SW, S, SE = neighbourstates
     #N,W,E,S = neighbourstates
     north_burning = (N==5)
