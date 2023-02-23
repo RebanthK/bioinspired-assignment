@@ -1,39 +1,19 @@
-# CAPyLE
-CAPyLE is a cross-platform teaching tool designed and built as part of a final year computer science project. It aims to aid the teaching of cellular automata and how they can be used to model natural systems.
+# Using Cellular Automata to Model Forest Fire Spread
+This project uses CAPyLE is a cross-platform teaching tool to help model the spread of Forest Fires. 
 
-It is written completely in python with minimal dependencies.
+IN THIS GUIDE WE OUTLINE HOW TO RUN OUR SIMULATION AND THE ADDITIONAL FUNCTIONS WE HAVE WRITTEN FOR OUR MODEL TO WORK. FOR FURTHER INSTRUCTIONS ON THE FUNCTIONALITY OF CAPYLE PLEASE REFER TO THE CAPYLE DOCUMENTATION AT https://pjworsley.github.io/capyle/
 
-![CAPyLE Screenshot on macOS](http://pjworsley.github.io/capyle/sample.png)
+THE KEY FUNCTIONALITY OF THE ASSIGNMENT HAS BEEN IMPLEMENTED IN THE forest_fire_sim.py in ca_descriptions
 
-## Installation
-The installation guide can be found on the [CAPyLE webpages](http://pjworsley.github.io/capyle/installationguide.html)
-
-## Usage
-Detailed usage can be found on the [CAPyLE webpages](http://pjworsley.github.io/capyle/).
-
-See below for a quickstart guide:
-
-1. `git clone https://github.com/pjworsley/capyle.git [target-directory]`
-2. `cd [target-directory]`
-3. Execute main.py either by:
-    * `run.bat` / `run.sh`
-    * `python main.py`
-2. Use the menu bar to select File -> Open. This will open in the folder `./ca_descriptions`.
-3. Open one of the example files;
-  - `wolframs_1d.py` is Wolfram's elementary 1D automata
-  - `gol_2d.py` is Conway's 2D game of life
-4. The main GUI elements will now load, feel free to customise the CA parameters on the left hand panel
-5. Run the CA with your parameters by clicking the bottom left button 'Apply configuration & run CA'
-6. The progress bar will appear as the CA is run
-7. After the CA has been run, use the playback controls at the top and the slider at the bottom to run through the simulation.
-8. You may save an image of the currently displayed output using the 'Take screenshot' button
-
-## Acknowledgements
-Special thanks to [Dr Dawn Walker](http://staffwww.dcs.shef.ac.uk/people/D.Walker/) for proposing and supervising this project.
-
-Also thanks to the COM2005 2016/2017 cohort for being the guinea-pigs!
-
-## Licence
-CAPyLE is licensed under a BSD licence, the terms of which can be found in the LICENCE file.
-
-Copyright 2017 Peter Worsley
+# Running the Simulation
+1. Setup CAPyLE as instructed in the CAPyLE documentation mentioned above.
+2. Run the program and open the main GUI.
+3. Download the zip file submitted and move the forest_fire_sim.py file into the
+ca_descriptions folder in your capyle folder
+4. From the GUI select File>Open>ca_descriptions and select forest_fire_sim.py
+5. Leave the Neighborhood, Initial Grid and Grid size as it is.
+6. You could optiionally select as many generations as you would like, however it is
+recommended to set it to 500 as that is what has been used in most of the tests
+displayed in the report.
+7. For further information on how to manipulate the GUI please refer to the CAPyLE
+documentation linked above
